@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/config/db.php';
 $error = '';
+$base = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
@@ -17,15 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $account = $stmt->get_result()->fetch_assoc();
 
         if ($account && password_verify($password, $account['passwordHash'])) {
-        $_SESSION['user'] = [
-            'loginID' => $account['loginID'],
-            'empID' => $account['empID'],
-            'adminID' => $account['adminID'],
-            'email' => $account['email'],
-            'role' => $account['role'],
-            'name' => trim($account['firstName'] . ' ' . $account['lastName']),
-            'department' => $account['department']
-        ];
+            $_SESSION['user'] = [
+                'loginID' => $account['loginID'],
+                'empID' => $account['empID'],
+                'adminID' => $account['adminID'],
+                'email' => $account['email'],
+                'role' => $account['role'],
+                'name' => trim($account['firstName'] . ' ' . $account['lastName']),
+                'department' => $account['department']
+            ];
             header('Location: dashboard.php');
             exit;
         } else {
@@ -36,25 +37,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Employee Attendance System</title>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body class="login-body">
     <form class="login-card" method="POST">
-        <div class="login-logo"><img src="icon/icon_Employee_Attendance_System.png" class="login-system-icon" alt="Employee Attendance System Icon"></div>
+        <div class="login-logo"><img src="icon/icon_Employee_Attendance_System.png" class="login-system-icon"
+                alt="Employee Attendance System Icon"></div>
         <div class="company-title">JolSpinTech Solution Sdn. Bhd.</div>
-        <?php if ($error): ?><div class="error-box"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+        <?php if ($error): ?>
+            <div class="error-box"><?= htmlspecialchars($error) ?></div><?php endif; ?>
         <input type="hidden" name="role" id="roleInput" value="Employee">
         <div class="role-tabs">
-            <button type="button" class="active" data-role="Employee">♙ Employee</button>
-            <button type="button" data-role="Admin">♙ Admin</button>
+            <button type="button" class="role-btn active" data-role="Employee">
+                <img src="icon/icon_Login.png" class="role-icon" width="20" height="20" alt="Employee Icon">
+                Employee
+            </button>
+
+            <button type="button" class="role-btn" data-role="Admin">
+                <img src="icon/icon_Admin.png" class="role-icon" width="20" height="20" alt="Admin Icon">
+                Admin
+            </button>
         </div>
         <div class="form-group">
             <label>Email</label>
-            <input type="email" name="email" placeholder="employee@jolspintech.com" autocomplete="username" inputmode="email" required>
+            <input type="email" name="email" placeholder="employee@jolspintech.com" autocomplete="username"
+                inputmode="email" required>
         </div>
         <div class="form-group">
             <label>Password</label>
@@ -71,4 +84,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
     <script src="assets/js/app.js"></script>
 </body>
+
 </html>

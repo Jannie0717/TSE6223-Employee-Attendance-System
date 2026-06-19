@@ -213,3 +213,31 @@ button:disabled,
 .black-filter {
     filter: brightness(0);
 }
+
+/* Login role buttons */
+.role-tabs .role-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Basic role icon setting */
+.role-tabs .role-btn img.role-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: inline-block;
+    position: relative;
+    top: 0px; /* move icon downward */
+}
+
+/* Not selected button: black icon */
+.role-tabs .role-btn:not(.active) img.role-icon {
+    filter: brightness(0) saturate(100%) !important;
+}
+
+/* Selected button: white icon */
+.role-tabs .role-btn.active img.role-icon {
+    filter: brightness(0) invert(1) !important;
+}

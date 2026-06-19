@@ -42,3 +42,16 @@ document.querySelectorAll('[data-toggle-target]').forEach(btn => {
     }
   });
 });
+
+document.querySelectorAll('.role-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        this.classList.add('active');
+
+        const selectedRole = this.getAttribute('data-role');
+        document.getElementById('roleInput').value = selectedRole;
+    });
+});
