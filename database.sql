@@ -16,7 +16,7 @@ CREATE TABLE employee_profile (
     firstName VARCHAR(50) NOT NULL,
     lastName VARCHAR(50) NOT NULL,
     department VARCHAR(50) NOT NULL,
-    jobPosition VARCHAR(50) NOT NULL,
+    jobPosition VARCHAR(30) NOT NULL,
     contactNum VARCHAR(20) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     profileImage VARCHAR(255) NULL,

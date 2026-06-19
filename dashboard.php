@@ -8,7 +8,8 @@ $profile = get_user_profile($conn, $user['empID']);
 $name = get_full_name($profile);
 $today = date('Y-m-d');
 $todayRec = today_record($conn, $user['empID']);
-$status = attendance_display_status($todayRec);
+$isWorkingDay = is_workday();
+$status = $isWorkingDay ? attendance_display_status($todayRec) : 'Non-working Day';
 
 if (is_admin()) {
     $totalEmployees = (int)$conn->query("SELECT COUNT(*) c FROM employee_profile WHERE employmentStatus='ACTIVE'")->fetch_assoc()['c'];
@@ -32,7 +33,7 @@ if (is_admin()) {
     $absent = ($todayRec && $todayRec['attendanceStatus'] === 'Absent') ? 1 : 0;
     $percentage = attendance_percentage($conn, $empID);
 }
-$statusClass = attendance_badge_class($todayRec);
+$statusClass = $isWorkingDay ? attendance_badge_class($todayRec) : 'purple';
 include __DIR__ . '/includes/header.php';
 ?>
 <div class="hero-card">

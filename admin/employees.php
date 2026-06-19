@@ -19,11 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jobPosition = trim($_POST['jobPosition'] ?? '');
     $contactNum = trim($_POST['contactNum'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $status = $_POST['employmentStatus'] ?? 'ACTIVE';
-    $dateJoined = $_POST['dateJoined'] ?? date('Y-m-d');
 
-    if (isset($_POST['add_employee'])) {
+    $errors = validate_employee_fields($firstName, $lastName, $department, $jobPosition, $contactNum, $email);
+
+    if ($errors) {
+        $error = implode(' ', $errors);
+    } elseif (isset($_POST['add_employee'])) {
         $newID = next_emp_id($conn);
+        $status = 'ACTIVE';
+        $dateJoined = date('Y-m-d');
         $stmt = $conn->prepare('INSERT INTO employee_profile (empID, firstName, lastName, department, jobPosition, contactNum, email, employmentStatus, dateJoined) VALUES (?,?,?,?,?,?,?,?,?)');
         $stmt->bind_param('sssssssss', $newID, $firstName, $lastName, $department, $jobPosition, $contactNum, $email, $status, $dateJoined);
         if ($stmt->execute()) {
@@ -31,20 +35,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $role = 'Employee';
             $stmt2 = $conn->prepare('INSERT INTO user_account (loginID, empID, email, passwordHash, role) VALUES (?,?,?,?,?)');
             $stmt2->bind_param('sssss', $newID, $newID, $email, $hash, $role);
-            $stmt2->execute();
-            $message = 'Employee added successfully. Default password is password123.';
+            if ($stmt2->execute()) {
+                $message = 'Employee added successfully. Default password is password123.';
+            } else {
+                $error = 'Employee profile was created, but the login account could not be created.';
+            }
         } else {
             $error = 'Unable to add employee. Email may already exist.';
         }
-    }
-
-    if (isset($_POST['update_employee'])) {
-        $stmt = $conn->prepare('UPDATE employee_profile SET firstName=?, lastName=?, department=?, jobPosition=?, contactNum=?, email=?, employmentStatus=?, dateJoined=? WHERE empID=?');
-        $stmt->bind_param('sssssssss', $firstName, $lastName, $department, $jobPosition, $contactNum, $email, $status, $dateJoined, $empID);
-        $message = $stmt->execute() ? 'Employee updated successfully.' : 'Unable to update employee.';
-        $stmt2 = $conn->prepare('UPDATE user_account SET email=? WHERE empID=?');
-        $stmt2->bind_param('ss', $email, $empID);
-        $stmt2->execute();
+    } elseif (isset($_POST['update_employee'])) {
+        $stmt = $conn->prepare('UPDATE employee_profile SET firstName=?, lastName=?, department=?, jobPosition=?, contactNum=?, email=? WHERE empID=?');
+        $stmt->bind_param('sssssss', $firstName, $lastName, $department, $jobPosition, $contactNum, $email, $empID);
+        if ($stmt->execute()) {
+            $stmt2 = $conn->prepare('UPDATE user_account SET email=? WHERE empID=?');
+            $stmt2->bind_param('ss', $email, $empID);
+            $stmt2->execute();
+            $message = 'Employee updated successfully.';
+        } else {
+            $error = 'Unable to update employee. Email may already exist.';
+        }
     }
 }
 
@@ -70,7 +79,7 @@ $employees = $conn->query("SELECT ep.*, ua.role FROM employee_profile ep LEFT JO
 include __DIR__ . '/../includes/header.php';
 ?>
 <h1 class="page-title">Employee Management</h1>
-<p class="page-subtitle">Add, edit, and delete employee records.</p>
+<p class="page-subtitle">Add, edit, and delete employee records based on the required employee profile details.</p>
 <?php if ($message): ?><div class="success-box"><?= e($message) ?></div><?php endif; ?>
 <?php if ($error): ?><div class="error-box"><?= e($error) ?></div><?php endif; ?>
 
@@ -84,14 +93,12 @@ include __DIR__ . '/../includes/header.php';
     <h2 class="section-title"><?= $editEmployee ? 'Edit Employee' : 'Add New Employee' ?></h2>
     <form method="POST" class="grid grid-2">
         <input type="hidden" name="empID" value="<?= e($editEmployee['empID'] ?? '') ?>">
-        <div class="form-group"><label>First Name</label><input name="firstName" value="<?= e($editEmployee['firstName'] ?? '') ?>" required></div>
-        <div class="form-group"><label>Last Name</label><input name="lastName" value="<?= e($editEmployee['lastName'] ?? '') ?>" required></div>
-        <div class="form-group"><label>Department</label><input name="department" value="<?= e($editEmployee['department'] ?? '') ?>" required></div>
-        <div class="form-group"><label>Job Position</label><input name="jobPosition" value="<?= e($editEmployee['jobPosition'] ?? '') ?>" required></div>
-        <div class="form-group"><label>Contact Number</label><input name="contactNum" value="<?= e($editEmployee['contactNum'] ?? '') ?>" required></div>
-        <div class="form-group"><label>Email</label><input type="email" name="email" value="<?= e($editEmployee['email'] ?? '') ?>" required></div>
-        <div class="form-group"><label>Employment Status</label><select name="employmentStatus"><option value="ACTIVE" <?= ($editEmployee['employmentStatus'] ?? '')==='ACTIVE'?'selected':'' ?>>ACTIVE</option><option value="INACTIVE" <?= ($editEmployee['employmentStatus'] ?? '')==='INACTIVE'?'selected':'' ?>>INACTIVE</option></select></div>
-        <div class="form-group"><label>Date Joined</label><input type="date" name="dateJoined" value="<?= e($editEmployee['dateJoined'] ?? date('Y-m-d')) ?>" required></div>
+        <div class="form-group"><label>First Name</label><input name="firstName" maxlength="50" value="<?= e($editEmployee['firstName'] ?? '') ?>" required></div>
+        <div class="form-group"><label>Last Name</label><input name="lastName" maxlength="50" value="<?= e($editEmployee['lastName'] ?? '') ?>" required></div>
+        <div class="form-group"><label>Department</label><input name="department" maxlength="50" value="<?= e($editEmployee['department'] ?? '') ?>" required></div>
+        <div class="form-group"><label>Job Position</label><input name="jobPosition" maxlength="30" value="<?= e($editEmployee['jobPosition'] ?? '') ?>" required></div>
+        <div class="form-group"><label>Contact Number</label><input name="contactNum" maxlength="20" pattern="\+?[0-9][0-9\s\-]{6,19}" title="Use numbers, spaces, hyphens, and optional + only" value="<?= e($editEmployee['contactNum'] ?? '') ?>" required></div>
+        <div class="form-group"><label>Email</label><input type="email" name="email" inputmode="email" maxlength="100" value="<?= e($editEmployee['email'] ?? '') ?>" required></div>
         <div class="form-group"><button class="btn btn-green full" name="<?= $editEmployee ? 'update_employee' : 'add_employee' ?>"><?= $editEmployee ? 'Update Employee' : 'Add Employee' ?></button></div>
         <?php if ($editEmployee): ?><div class="form-group"><a class="btn btn-outline full" href="employees.php">Cancel Edit</a></div><?php endif; ?>
     </form>
@@ -100,15 +107,16 @@ include __DIR__ . '/../includes/header.php';
 <div class="table-wrap">
     <h2 class="section-title">Employee List</h2>
     <table>
-        <thead><tr><th>Employee ID</th><th>Full Name</th><th>Department</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+        <thead><tr><th>Employee ID</th><th>Full Name</th><th>Department</th><th>Job Position</th><th>Contact Number</th><th>Email</th><th>Action</th></tr></thead>
         <tbody>
         <?php while($eRow=$employees->fetch_assoc()): ?>
             <tr>
                 <td><?= e($eRow['empID']) ?></td>
                 <td><?= e($eRow['firstName'].' '.$eRow['lastName']) ?></td>
                 <td><?= e($eRow['department']) ?></td>
+                <td><?= e($eRow['jobPosition']) ?></td>
+                <td><?= e($eRow['contactNum']) ?></td>
                 <td><?= e($eRow['email']) ?></td>
-                <td><span class="badge green"><?= e($eRow['employmentStatus']) ?></span></td>
                 <td class="table-actions"><a href="employees.php?edit=<?= e($eRow['empID']) ?>">Edit</a><a onclick="return confirm('Delete this employee?')" href="employees.php?delete=<?= e($eRow['empID']) ?>">Delete</a></td>
             </tr>
         <?php endwhile; ?>

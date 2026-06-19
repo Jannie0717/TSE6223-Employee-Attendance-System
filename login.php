@@ -8,12 +8,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $role = $_POST['role'] ?? 'Employee';
 
-    $stmt = $conn->prepare("SELECT ua.*, ep.firstName, ep.lastName, ep.department FROM user_account ua JOIN employee_profile ep ON ua.empID = ep.empID WHERE ua.email = ? AND ua.role = ?");
-    $stmt->bind_param('ss', $email, $role);
-    $stmt->execute();
-    $account = $stmt->get_result()->fetch_assoc();
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
+    } else {
+        $stmt = $conn->prepare("SELECT ua.*, ep.firstName, ep.lastName, ep.department FROM user_account ua JOIN employee_profile ep ON ua.empID = ep.empID WHERE ua.email = ? AND ua.role = ?");
+        $stmt->bind_param('ss', $email, $role);
+        $stmt->execute();
+        $account = $stmt->get_result()->fetch_assoc();
 
-    if ($account && password_verify($password, $account['passwordHash'])) {
+        if ($account && password_verify($password, $account['passwordHash'])) {
         $_SESSION['user'] = [
             'loginID' => $account['loginID'],
             'empID' => $account['empID'],
@@ -23,10 +26,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name' => trim($account['firstName'] . ' ' . $account['lastName']),
             'department' => $account['department']
         ];
-        header('Location: dashboard.php');
-        exit;
-    } else {
-        $error = 'Invalid email, password, or selected role.';
+            header('Location: dashboard.php');
+            exit;
+        } else {
+            $error = 'Invalid email, password, or selected role.';
+        }
     }
 }
 ?>
@@ -40,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="login-body">
     <form class="login-card" method="POST">
-        <div class="login-logo"><image src="icon/icon_Employee_Attendance_System.png" class="login-icon" width="50" height="50" alt="Login Icon"></div>
+        <div class="login-logo"><img src="icon/icon_Employee_Attendance_System.png" class="login-system-icon" alt="Employee Attendance System Icon"></div>
         <div class="company-title">JolSpinTech Solution Sdn. Bhd.</div>
         <?php if ($error): ?><div class="error-box"><?= htmlspecialchars($error) ?></div><?php endif; ?>
         <input type="hidden" name="role" id="roleInput" value="Employee">
@@ -50,11 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div class="form-group">
             <label>Email</label>
-            <input type="email" name="email" placeholder="employee@jolspintech.com" required>
+            <input type="email" name="email" placeholder="employee@jolspintech.com" autocomplete="username" inputmode="email" required>
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" name="password" placeholder="password123" required>
+            <input type="password" name="password" placeholder="password123" autocomplete="current-password" required>
         </div>
         <button class="btn btn-dark full" type="submit">✓ Login</button>
         <div class="login-footer">

@@ -12,17 +12,21 @@ $nowTime = date('H:i:s');
 $lateThreshold = '09:15:00';
 $endTime = '18:00:00';
 $afterWorkHours = ($nowTime >= $endTime);
+$isWorkingDay = is_workday();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $empID = $user['empID'];
     $record = today_record($conn, $empID);
 
-    if ($action === 'clock_in') {
-        if ($afterWorkHours) {
-            $message = 'Working hours have ended. You are marked as absent and cannot clock in today.';
-            $messageType = 'warn';
-        } elseif ($record && $record['clockInTime']) {
+    if (!$isWorkingDay) {
+        $message = 'Clock-in and clock-out are only available from Monday to Friday.';
+        $messageType = 'warn';
+    } elseif ($afterWorkHours) {
+        $message = 'Working hours have ended. Clock-in and clock-out are no longer available for today.';
+        $messageType = 'warn';
+    } elseif ($action === 'clock_in') {
+        if ($record && $record['clockInTime']) {
             $message = 'You have already clocked in for today.';
             $messageType = 'warn';
         } else {
@@ -43,9 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $messageType = 'warn';
             }
         }
-    }
-
-    if ($action === 'clock_out') {
+    } elseif ($action === 'clock_out') {
         if (!$record || !$record['clockInTime']) {
             if ($afterWorkHours) {
                 $message = 'Working hours have ended. You are marked as absent and cannot clock out today.';
@@ -79,15 +81,17 @@ $clockIn = $todayRec['clockInTime'] ?? null;
 $clockOut = $todayRec['clockOutTime'] ?? null;
 $status = attendance_display_status($todayRec);
 $isAbsent = ($todayRec && ($todayRec['attendanceStatus'] ?? '') === 'Absent');
-$clockInDisabled = ($clockIn || $isAbsent || $afterWorkHours);
-$clockOutDisabled = (!$clockIn || $clockOut || $isAbsent);
+$clockInDisabled = (!$isWorkingDay || $clockIn || $isAbsent || $afterWorkHours);
+$clockOutDisabled = (!$isWorkingDay || !$clockIn || $clockOut || $isAbsent || $afterWorkHours);
 include __DIR__ . '/includes/header.php';
 ?>
 <h1 class="page-title">Clock In / Clock Out</h1>
 <p class="page-subtitle">Record your attendance by clocking in and out based on the current server time.</p>
 
-<?php if ($isAbsent): ?>
-<div class="error-box">Working hours have ended and today's attendance has been automatically marked as Absent. Clock-in and clock-out are no longer available for today.</div>
+<?php if (!$isWorkingDay): ?>
+<div class="error-box">Today is a non-working day. Clock-in and clock-out are only available from Monday to Friday.</div>
+<?php elseif ($isAbsent): ?>
+<div class="error-box">Working hours have ended. Employees without clock-in are automatically marked as Absent, and clock-in/clock-out are no longer available for today.</div>
 <?php endif; ?>
 
 <div class="grid grid-3">
@@ -112,6 +116,8 @@ include __DIR__ . '/includes/header.php';
             <div class="row"><span class="row-label">Official Working Hours:</span><span class="row-value">9:00 AM - 6:00 PM</span></div>
             <hr>
             <div class="row"><span class="row-label">Late Threshold:</span><span class="row-value">After 9:15 AM</span></div>
+            <hr>
+            <div class="row"><span class="row-label">Working Days:</span><span class="row-value">Monday - Friday</span></div>
             <hr>
             <div class="row"><span class="row-label">Absent Rule:</span><span class="row-value">No clock-in after 6:00 PM</span></div>
         </div>

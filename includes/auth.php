@@ -8,6 +8,44 @@ function e($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
+
+function is_workday($timestamp = null) {
+    $timestamp = $timestamp ?? time();
+    $dayNumber = (int)date('N', $timestamp); // 1 = Monday, 7 = Sunday
+    return $dayNumber >= 1 && $dayNumber <= 5;
+}
+
+function validate_employee_fields($firstName, $lastName, $department, $jobPosition, $contactNum, $email) {
+    $errors = [];
+    $fields = [
+        'First Name' => [$firstName, 50],
+        'Last Name' => [$lastName, 50],
+        'Department' => [$department, 50],
+        'Job Position' => [$jobPosition, 30],
+        'Contact Number' => [$contactNum, 20],
+    ];
+
+    foreach ($fields as $label => [$value, $max]) {
+        if ($value === '') {
+            $errors[] = $label . ' is required.';
+        } elseif (mb_strlen($value) > $max) {
+            $errors[] = $label . ' cannot exceed ' . $max . ' characters.';
+        }
+    }
+
+    if ($email === '') {
+        $errors[] = 'Email is required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Email must be in a valid email format.';
+    }
+
+    if ($contactNum !== '' && !preg_match('/^\+?[0-9][0-9\s\-]{6,19}$/', $contactNum)) {
+        $errors[] = 'Contact Number must contain only numbers, spaces, hyphens, and an optional + sign.';
+    }
+
+    return $errors;
+}
+
 function is_logged_in() {
     return isset($_SESSION['user']);
 }
@@ -70,9 +108,14 @@ function profile_photo_url($profile, $base = '') {
 }
 
 function sync_daily_attendance($conn) {
-    // Simulate automatic attendance evaluation whenever the system is opened.
+    // Automatic attendance evaluation is only performed on working days.
+    // Working days: Monday to Friday.
     // After 9:15 AM: active employees without clock-in are temporarily marked as Late.
     // After 6:00 PM: active employees who still have not clocked in are marked as Absent.
+    if (!is_workday()) {
+        return;
+    }
+
     $today = date('Y-m-d');
     $now = date('H:i:s');
     $lateThreshold = '09:15:00';

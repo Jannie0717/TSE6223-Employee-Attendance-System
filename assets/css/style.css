@@ -78,7 +78,7 @@ button,input,select{font:inherit}
 .sidebar{
     width:330px;min-height:100vh;background:#fff;border-right:1px solid #d9dbe1;padding:28px 14px;position:sticky;top:0;
 }
-.brand{font-size:14px;font-weight:800;margin:0 12px 28px;display:flex;align-items:center;gap:6px}.brand-icon{font-size:26px}
+.brand{font-size:20px;font-weight:800;margin:0 12px 28px;display:flex;align-items:center;gap:6px}.brand-icon{font-size:26px}
 .user-pill{height:66px;border:1px solid #c9ccd5;border-radius:34px;display:flex;align-items:center;gap:14px;padding:8px 16px;margin-bottom:28px;background:#fafbfe}
 .avatar{width:50px;height:50px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex:0 0 50px}
 .user-pill small{display:block;color:#5c5f67;margin-top:4px;font-weight:600}
@@ -183,30 +183,33 @@ button:disabled,
     }
 }
 
+
+/* Image icons */
 .brand-icon,
-.nav-menu a span {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.nav-menu a span{
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
-
 .brand-img,
-.nav-icon {
-    object-fit: contain;
-    display: block;
+.nav-icon,
+.login-system-icon{
+    object-fit:contain;
+    display:block;
+}
+.login-system-icon{
+    width:60px;
+    height:60px;
+    filter:brightness(0) invert(1);
+}
+.brand-img,
+.nav-menu a .nav-icon{
+    filter:brightness(0);
+}
+.nav-menu a.active .nav-icon{
+    filter:brightness(0) invert(1);
 }
 
-/* Normal / not selected icon = black */
-.nav-menu a .nav-icon {
-    filter: brightness(0);
-}
-
-/* Selected / active icon = white */
-.nav-menu a.active .nav-icon {
-    filter: brightness(0) invert(1);
-}
-
-/* Brand icon black */
 .black-filter {
     filter: brightness(0);
 }
