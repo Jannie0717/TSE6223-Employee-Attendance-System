@@ -6,9 +6,9 @@ Company: JolSpinTech Solutions Sdn. Bhd.
 Technology: PHP, MySQL, HTML, CSS, JavaScript
 Database Tool: phpMyAdmin through XAMPP
 
-========================================
+
 1. INSTALLATION STEPS
-========================================
+
 
 1. Install and open XAMPP.
 2. Start Apache and MySQL.
@@ -26,9 +26,9 @@ Database Tool: phpMyAdmin through XAMPP
 6. Open the system in browser:
    http://localhost/employee_attendance_system/
 
-========================================
+
 2. DEMO LOGIN ACCOUNTS
-========================================
+
 
 Employee account:
 Email: employee@jolspintech.com
@@ -42,9 +42,9 @@ Role: Admin
 
 Important: On the login page, select the correct role before logging in.
 
-========================================
+
 3. MAIN FEATURES
-========================================
+
 
 Employee:
 - Secure login and logout
@@ -69,9 +69,9 @@ Admin:
 - Print attendance records or save as PDF through browser print
 - Manually correct attendance records
 
-========================================
+
 4. DATABASE CONFIGURATION
-========================================
+
 
 Database connection file:
 config/db.php
@@ -84,9 +84,9 @@ Database: employee_attendance_system
 
 If your MySQL password is different, update config/db.php.
 
-========================================
+
 5. ATTENDANCE RULE USED
-========================================
+
 
 Official working hours: 9:00 AM - 6:00 PM
 Late threshold: after 9:15 AM
